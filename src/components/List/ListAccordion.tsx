@@ -15,6 +15,8 @@ import Text from '../Typography/Text';
 import { withTheme } from '../../core/theming';
 
 import { ListAccordionGroupContext } from './ListAccordionGroup';
+import LinearGradient from 'react-native-linear-gradient';
+
 
 type Props = {
   /**
@@ -22,9 +24,17 @@ type Props = {
    */
   title: React.ReactNode;
   /**
+   * Adding LInear Gradient to Title for the list accordion.
+   */
+   titleGradientComponent: React.ReactNode;
+  /**
    * Description text for the list accordion.
    */
   description?: React.ReactNode;
+  /**
+   * Gradient colors for the list accordion.
+   */
+   gradientColorPrimary?: (string | number)[];
   /**
    * Callback which returns a React element to display on the left side.
    */
@@ -67,6 +77,10 @@ type Props = {
    * Style that is passed to Description element.
    */
   descriptionStyle?: StyleProp<TextStyle>;
+  /**
+   * Style that is passed to the gradient TouchableRipple element.
+   */
+   gradientStyle?: StyleProp<ViewStyle>;
   /**
    * Truncate Title text such that the total number of lines does not
    * exceed this number.
@@ -152,6 +166,9 @@ const ListAccordion = ({
   onLongPress,
   expanded: expandedProp,
   accessibilityLabel,
+  titleGradientComponent,
+  gradientColorPrimary,
+  gradientStyle,
 }: Props) => {
   const [expanded, setExpanded] = React.useState<boolean>(
     expandedProp || false
@@ -169,6 +186,8 @@ const ListAccordion = ({
 
   const titleColor = color(theme.colors.text).alpha(0.87).rgb().string();
   const descriptionColor = color(theme.colors.text).alpha(0.54).rgb().string();
+  const linearPrimaryColor = '#ffffff';
+  const linearSecondaryColor = '#656566';
 
   const expandedInternal = expandedProp !== undefined ? expandedProp : expanded;
 
@@ -202,7 +221,75 @@ const ListAccordion = ({
           delayPressIn={0}
           borderless
         >
-          <View style={styles.row} pointerEvents="none">
+          {titleGradientComponent ? (
+            <LinearGradient
+              colors={
+                gradientColorPrimary
+                  ? gradientColorPrimary
+                  : [linearPrimaryColor, linearSecondaryColor]
+              }
+              style={[styles.gradientStyle, gradientStyle]}
+            >
+              <View style={styles.row} pointerEvents="none">
+                {left
+                  ? left({
+                      color: isExpanded
+                        ? theme.colors.primary
+                        : descriptionColor,
+                    })
+                  : null}
+                <View style={[styles.item, styles.content]}>
+                  <Text
+                    selectable={false}
+                    numberOfLines={titleNumberOfLines}
+                    style={[
+                      styles.title,
+                      {
+                        color: isExpanded ? theme.colors.primary : titleColor,
+                      },
+                      titleStyle,
+                    ]}
+                  >
+                    {title}
+                  </Text>
+                  {description && (
+                    <Text
+                      selectable={false}
+                      numberOfLines={descriptionNumberOfLines}
+                      style={[
+                        styles.description,
+                        {
+                          color: descriptionColor,
+                        },
+                        descriptionStyle,
+                      ]}
+                    >
+                      {description}
+                    </Text>
+                  )}
+                </View>
+                <View
+                  style={[
+                    styles.item,
+                    description ? styles.multiline : undefined,
+                  ]}
+                >
+                  {right ? (
+                    right({
+                      isExpanded: isExpanded,
+                    })
+                  ) : (
+                    <MaterialCommunityIcon
+                      name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                      color={titleColor}
+                      size={24}
+                      direction={I18nManager.isRTL ? 'rtl' : 'ltr'}
+                    />
+                  )}
+                </View>
+              </View>
+            </LinearGradient>
+          ) : (<View style={styles.row} pointerEvents="none">
             {left
               ? left({
                   color: isExpanded ? theme.colors.primary : descriptionColor,
@@ -255,6 +342,7 @@ const ListAccordion = ({
               )}
             </View>
           </View>
+          )}
         </TouchableRipple>
       </View>
 
@@ -282,7 +370,8 @@ ListAccordion.displayName = 'List.Accordion';
 
 const styles = StyleSheet.create({
   container: {
-    padding: 8,
+    // paddingVertical: 5,
+    borderRadius: 100,
   },
   row: {
     flexDirection: 'row',
@@ -295,6 +384,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
+    marginLeft: 10,
   },
   description: {
     fontSize: 14,
@@ -308,6 +398,12 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
+  },
+  gradientStyle: {
+    borderWidth: 1,
+    borderRadius: 100,
+    borderColor: '#ffffff',
+    padding: 8,
   },
 });
 
